@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, Camera, Trash2 } from 'lucide-react-native';
+import { Plus, Camera, Trash2, Heart } from 'lucide-react-native';
 import { Pet } from '@/types';
 import { StorageService } from '@/services/storage';
 import { format } from 'date-fns';

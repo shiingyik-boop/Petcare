@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -23,12 +23,13 @@ const PET_TYPES = ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster', 'Other'];
 export default function AddPetScreen() {
   const params = useLocalSearchParams();
   const existingPet = params.pet ? JSON.parse(params.pet as string) as Pet : null;
-  
+
   const [name, setName] = useState(existingPet?.name || '');
   const [type, setType] = useState(existingPet?.type || '');
   const [age, setAge] = useState(existingPet?.age?.toString() || '');
   const [imageUri, setImageUri] = useState(existingPet?.imageUri || '');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const pickImage = async () => {
     try {
@@ -75,16 +76,31 @@ export default function AddPetScreen() {
     }
   };
 
+  const handleWebFileInput = (event: any) => {
+    const file = event.target?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUri(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const showImagePicker = () => {
-    Alert.alert(
-      'Select Photo',
-      'Choose how you want to add a photo',
-      [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Gallery', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      fileInputRef.current?.click();
+    } else {
+      Alert.alert(
+        'Select Photo',
+        'Choose how you want to add a photo',
+        [
+          { text: 'Camera', onPress: takePhoto },
+          { text: 'Gallery', onPress: pickImage },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    }
   };
 
   const handleSave = async () => {
@@ -155,6 +171,16 @@ export default function AddPetScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {Platform.OS === 'web' && (
+          <input
+            ref={fileInputRef as any}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleWebFileInput}
+          />
+        )}
+
         <TouchableOpacity style={styles.imageSection} onPress={showImagePicker}>
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.petImage} />

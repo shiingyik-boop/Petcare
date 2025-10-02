@@ -8,7 +8,12 @@ export class StorageService {
   // Pet operations
   static async savePets(pets: Pet[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(PETS_STORAGE_KEY, JSON.stringify(pets));
+      const serializedPets = pets.map(pet => ({
+        ...pet,
+        createdAt: pet.createdAt instanceof Date ? pet.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: pet.updatedAt instanceof Date ? pet.updatedAt.toISOString() : new Date().toISOString(),
+      }));
+      await AsyncStorage.setItem(PETS_STORAGE_KEY, JSON.stringify(serializedPets));
     } catch (error) {
       console.error('Error saving pets:', error);
       throw error;
@@ -19,12 +24,12 @@ export class StorageService {
     try {
       const petsData = await AsyncStorage.getItem(PETS_STORAGE_KEY);
       if (!petsData) return [];
-      
+
       const pets = JSON.parse(petsData);
       return pets.map((pet: any) => ({
         ...pet,
-        createdAt: new Date(pet.createdAt),
-        updatedAt: new Date(pet.updatedAt),
+        createdAt: pet.createdAt ? new Date(pet.createdAt) : new Date(),
+        updatedAt: pet.updatedAt ? new Date(pet.updatedAt) : new Date(),
       }));
     } catch (error) {
       console.error('Error getting pets:', error);
@@ -35,7 +40,12 @@ export class StorageService {
   static async addPet(pet: Pet): Promise<Pet[]> {
     try {
       const pets = await this.getPets();
-      const newPets = [...pets, pet];
+      const petWithDates = {
+        ...pet,
+        createdAt: pet.createdAt || new Date(),
+        updatedAt: pet.updatedAt || new Date(),
+      };
+      const newPets = [...pets, petWithDates];
       await this.savePets(newPets);
       return newPets;
     } catch (error) {
@@ -48,7 +58,7 @@ export class StorageService {
     try {
       const pets = await this.getPets();
       const petIndex = pets.findIndex(p => p.id === petId);
-      
+
       if (petIndex === -1) {
         throw new Error('Pet not found');
       }
@@ -56,6 +66,7 @@ export class StorageService {
       pets[petIndex] = {
         ...pets[petIndex],
         ...updatedPet,
+        createdAt: pets[petIndex].createdAt || new Date(),
         updatedAt: new Date(),
       };
 
@@ -86,7 +97,13 @@ export class StorageService {
   // Reminder operations
   static async saveReminders(reminders: Reminder[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(reminders));
+      const serializedReminders = reminders.map(reminder => ({
+        ...reminder,
+        date: reminder.date instanceof Date ? reminder.date.toISOString() : new Date().toISOString(),
+        createdAt: reminder.createdAt instanceof Date ? reminder.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: reminder.updatedAt instanceof Date ? reminder.updatedAt.toISOString() : new Date().toISOString(),
+      }));
+      await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(serializedReminders));
     } catch (error) {
       console.error('Error saving reminders:', error);
       throw error;
@@ -97,13 +114,13 @@ export class StorageService {
     try {
       const remindersData = await AsyncStorage.getItem(REMINDERS_STORAGE_KEY);
       if (!remindersData) return [];
-      
+
       const reminders = JSON.parse(remindersData);
       return reminders.map((reminder: any) => ({
         ...reminder,
-        date: new Date(reminder.date),
-        createdAt: new Date(reminder.createdAt),
-        updatedAt: new Date(reminder.updatedAt),
+        date: reminder.date ? new Date(reminder.date) : new Date(),
+        createdAt: reminder.createdAt ? new Date(reminder.createdAt) : new Date(),
+        updatedAt: reminder.updatedAt ? new Date(reminder.updatedAt) : new Date(),
       }));
     } catch (error) {
       console.error('Error getting reminders:', error);
@@ -124,7 +141,13 @@ export class StorageService {
   static async addReminder(reminder: Reminder): Promise<Reminder[]> {
     try {
       const reminders = await this.getReminders();
-      const newReminders = [...reminders, reminder];
+      const reminderWithDates = {
+        ...reminder,
+        date: reminder.date || new Date(),
+        createdAt: reminder.createdAt || new Date(),
+        updatedAt: reminder.updatedAt || new Date(),
+      };
+      const newReminders = [...reminders, reminderWithDates];
       await this.saveReminders(newReminders);
       return newReminders;
     } catch (error) {
@@ -137,7 +160,7 @@ export class StorageService {
     try {
       const reminders = await this.getReminders();
       const reminderIndex = reminders.findIndex(r => r.id === reminderId);
-      
+
       if (reminderIndex === -1) {
         throw new Error('Reminder not found');
       }
@@ -145,6 +168,8 @@ export class StorageService {
       reminders[reminderIndex] = {
         ...reminders[reminderIndex],
         ...updatedReminder,
+        date: updatedReminder.date || reminders[reminderIndex].date || new Date(),
+        createdAt: reminders[reminderIndex].createdAt || new Date(),
         updatedAt: new Date(),
       };
 

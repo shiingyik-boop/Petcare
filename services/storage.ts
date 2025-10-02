@@ -26,13 +26,25 @@ export class StorageService {
       if (!petsData) return [];
 
       const pets = JSON.parse(petsData);
+
+      if (!Array.isArray(pets)) {
+        console.warn('Pets data is not an array, clearing storage');
+        await AsyncStorage.removeItem(PETS_STORAGE_KEY);
+        return [];
+      }
+
       return pets.map((pet: any) => ({
         ...pet,
+        id: pet.id || '',
+        name: pet.name || '',
+        type: pet.type || '',
+        age: pet.age || 0,
         createdAt: pet.createdAt ? new Date(pet.createdAt) : new Date(),
         updatedAt: pet.updatedAt ? new Date(pet.updatedAt) : new Date(),
       }));
     } catch (error) {
-      console.error('Error getting pets:', error);
+      console.error('Error getting pets, clearing corrupted data:', error);
+      await AsyncStorage.removeItem(PETS_STORAGE_KEY);
       return [];
     }
   }
@@ -116,14 +128,28 @@ export class StorageService {
       if (!remindersData) return [];
 
       const reminders = JSON.parse(remindersData);
+
+      if (!Array.isArray(reminders)) {
+        console.warn('Reminders data is not an array, clearing storage');
+        await AsyncStorage.removeItem(REMINDERS_STORAGE_KEY);
+        return [];
+      }
+
       return reminders.map((reminder: any) => ({
         ...reminder,
+        id: reminder.id || '',
+        petId: reminder.petId || '',
+        title: reminder.title || '',
+        description: reminder.description || '',
+        time: reminder.time || '09:00',
+        isCompleted: reminder.isCompleted || false,
         date: reminder.date ? new Date(reminder.date) : new Date(),
         createdAt: reminder.createdAt ? new Date(reminder.createdAt) : new Date(),
         updatedAt: reminder.updatedAt ? new Date(reminder.updatedAt) : new Date(),
       }));
     } catch (error) {
-      console.error('Error getting reminders:', error);
+      console.error('Error getting reminders, clearing corrupted data:', error);
+      await AsyncStorage.removeItem(REMINDERS_STORAGE_KEY);
       return [];
     }
   }

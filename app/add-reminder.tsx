@@ -32,8 +32,18 @@ const REMINDER_TEMPLATES = [
 export default function AddReminderScreen() {
   const params = useLocalSearchParams();
   const petId = params.petId as string;
-  const existingReminder = params.reminder ? JSON.parse(params.reminder as string) as Reminder : null;
-  
+
+  let existingReminder: Reminder | null = null;
+  if (params.reminder) {
+    const parsedReminder = JSON.parse(params.reminder as string);
+    existingReminder = {
+      ...parsedReminder,
+      date: parsedReminder.date ? new Date(parsedReminder.date) : new Date(),
+      createdAt: parsedReminder.createdAt ? new Date(parsedReminder.createdAt) : new Date(),
+      updatedAt: parsedReminder.updatedAt ? new Date(parsedReminder.updatedAt) : new Date(),
+    };
+  }
+
   const [title, setTitle] = useState(existingReminder?.title || '');
   const [description, setDescription] = useState(existingReminder?.description || '');
   const [date, setDate] = useState(existingReminder?.date || new Date());

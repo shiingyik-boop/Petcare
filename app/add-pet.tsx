@@ -22,7 +22,16 @@ const PET_TYPES = ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster', 'Other'];
 
 export default function AddPetScreen() {
   const params = useLocalSearchParams();
-  const existingPet = params.pet ? JSON.parse(params.pet as string) as Pet : null;
+  let existingPet: Pet | null = null;
+
+  if (params.pet) {
+    const parsedPet = JSON.parse(params.pet as string);
+    existingPet = {
+      ...parsedPet,
+      createdAt: parsedPet.createdAt ? new Date(parsedPet.createdAt) : new Date(),
+      updatedAt: parsedPet.updatedAt ? new Date(parsedPet.updatedAt) : new Date(),
+    };
+  }
 
   const [name, setName] = useState(existingPet?.name || '');
   const [type, setType] = useState(existingPet?.type || '');
@@ -121,15 +130,16 @@ export default function AddPetScreen() {
 
     try {
       setLoading(true);
-      
+
+      const now = new Date();
       const petData: Pet = {
         id: existingPet?.id || uuidv4(),
         name: name.trim(),
         type: type.trim(),
         age: parseInt(age),
         imageUri: imageUri || undefined,
-        createdAt: existingPet?.createdAt || new Date(),
-        updatedAt: new Date(),
+        createdAt: existingPet?.createdAt || now,
+        updatedAt: now,
       };
 
       if (existingPet) {
@@ -140,7 +150,9 @@ export default function AddPetScreen() {
 
       router.back();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save pet');
+      console.error('Error saving pet:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save pet';
+      Alert.alert('Error', `Failed to save pet: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

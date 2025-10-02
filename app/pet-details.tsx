@@ -17,8 +17,13 @@ import { format, isAfter, startOfDay } from 'date-fns';
 
 export default function PetDetailsScreen() {
   const params = useLocalSearchParams();
-  const pet = JSON.parse(params.pet as string) as Pet;
-  
+  const parsedPet = JSON.parse(params.pet as string);
+  const pet: Pet = {
+    ...parsedPet,
+    createdAt: parsedPet.createdAt ? new Date(parsedPet.createdAt) : new Date(),
+    updatedAt: parsedPet.updatedAt ? new Date(parsedPet.updatedAt) : new Date(),
+  };
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -9,6 +9,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -67,9 +69,7 @@ export class NotificationService {
           body: `${petName} - ${reminder.description}`,
           sound: 'default',
         },
-        trigger: {
-          date: notificationDate,
-        },
+        trigger: { date: notificationDate } as Notifications.NotificationTriggerInput,
       });
 
       return notificationId;
